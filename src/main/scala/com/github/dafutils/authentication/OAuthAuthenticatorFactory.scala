@@ -34,10 +34,10 @@ class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSuppli
               knownOauthCredentialsForRequest
             )
             (expectedOAuthTokenParameters, knownOauthCredentialsForRequest)
-          } map { case (expectedOAuthTokenParameters, param) =>
+          } map { case (expectedOAuthTokenParameters, knownCredentials) =>
             if (expectedOAuthTokenParameters.oauthSignature == callerCredentials.params("oauth_signature")) {
               logger.debug(s"Successfully authenticated incoming request with clientKey=$clientKeyInRequest.")
-              Right(param)
+              Right(knownCredentials)
             } else {
               logger.debug(s"Failed authenticating incoming request with clientKey=$clientKeyInRequest: Signature does not match expected one.")
               Left(HttpChallenge(scheme = "OAuth", realm = None))
@@ -56,6 +56,7 @@ class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSuppli
                                       callerTimestamp: String,
                                       callerNonce: String,
                                       connectorCredentials: OAuthCredentials) = {
+
     val expectedOAuthToken = authorizationTokenGenerator.generateAuthorizationHeader(
       httpMethodName = requestHttpMethodName,
       resourceUrl = requestUrl,
