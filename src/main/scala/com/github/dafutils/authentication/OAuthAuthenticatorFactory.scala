@@ -14,6 +14,9 @@ class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSuppli
                            (implicit ex: ExecutionContext): Future[AuthenticationResult[OAuthCredentials]] =
     Future {
       credentialsInRequest match {
+        case None =>
+          Left(HttpChallenge(scheme = "OAuth", realm = None))
+
         case Some(callerCredentials) =>
 
           val requestClientKey = callerCredentials.params("oauth_consumer_key")
@@ -31,8 +34,6 @@ class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSuppli
           } else {
             Left(HttpChallenge(scheme = "OAuth", realm = None))
           }
-        case _ =>
-          Left(HttpChallenge(scheme = "OAuth", realm = None))
       }
     } recover {
       case _: UnknownClientKeyException => Left(HttpChallenge(scheme = "OAuth", realm = None))
@@ -53,9 +54,3 @@ class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSuppli
     oauthSignatureParser.parse(expectedOAuthToken)
   }
 }
-
-trait KnownOAuthCredentialsSupplier {
-  def oauthSecretFor(oauthKey: String): OAuthCredentials
-}
-
-case class OAuthCredentials(clientKey: String, clientSecret: String)
