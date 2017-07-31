@@ -1,0 +1,32 @@
+jdk: oraclejdk8
+
+language: scala
+
+scala: 2.12.3
+
+cache:
+  directories:
+    - "$HOME/.ivy2/cache"
+    - "$HOME/.sbt/boot/"
+
+jobs:
+  include:
+ 
+    - stage: test
+      env:
+        - NAME="Assert project version is not overriden manually"
+      script: ./src/scripts/assert_project_version_not_overriden.sh
+
+    - stage: test
+      env:
+        - NAME="Run unit tests"
+      script: sbt ++$TRAVIS_SCALA_VERSION clean test
+
+    - stage: publish
+      env:
+        - NAME="Publish build artifacts"
+      script: sbt ++$TRAVIS_SCALA_VERSION bintrayEnsureCredentials publish
+
+
+notifications:
+  email: false
