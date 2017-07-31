@@ -86,16 +86,9 @@ lazy val akkahttpoauth1 = (project in file("."))
       "oauth.signpost" % "signpost-core" % SIGNPOST_VERSION,
       "oauth.signpost" % "signpost-commonshttp4" % SIGNPOST_VERSION,
 
-//      "com.typesafe.akka" %% "akka-actor" % AKKA_VERSION,
-//      "com.typesafe.akka" %% "akka-http-core" % AKKA_HTTP_VERSION,
-//      "com.typesafe.akka" %% "akka-stream" % AKKA_VERSION, // Added to allow using the latest version of Akka with Akka Http 10.0.9
-      "com.typesafe.akka" %% "akka-http" % AKKA_HTTP_VERSION,
-      "com.typesafe.akka" %% "akka-http-testkit" % AKKA_HTTP_VERSION,
-//      "com.typesafe.akka" %% "akka-http-xml" % AKKA_HTTP_VERSION,
-//      "io.github.lhotari" %% "akka-http-health" % "1.0.8",
+      "com.typesafe.akka" %% "akka-http" % AKKA_HTTP_VERSION % "provided",
 
       //Test
-      "org.scalactic" %% "scalactic" % "3.0.3",
       "org.scalatest" %% "scalatest" % "3.0.3" % "test",
       "org.mockito" % "mockito-all" % "1.10.19" % "test"
     )
