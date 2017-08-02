@@ -20,7 +20,7 @@ jobs:
     - stage: test
       env:
         - NAME="Run unit tests"
-      script: sbt ++$TRAVIS_SCALA_VERSION clean test
+      script: sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport coverageAggregate codacyCoverage
 
     - stage: publish
       env:
