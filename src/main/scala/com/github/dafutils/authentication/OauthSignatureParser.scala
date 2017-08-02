@@ -30,4 +30,22 @@ class OauthSignatureParser {
       case NonFatal(_) => 
         throw new IllegalArgumentException(s"Failed parsing oauth header: [$oauthHeaderValue]")
     }
+  
+  def parseAsMap(oauthHeaderValue: String): Map[String, String] = try {
+    val fieldsAndValues = oauthHeaderValue
+      .stripPrefix("OAuth ")
+      .split(", ")
+      .flatMap(_.split("="))
+
+    fieldsAndValues
+      .grouped(2)
+      .map { fieldAndValue =>
+        fieldAndValue(0) -> fieldAndValue(1).drop(1).dropRight(1)
+      } toMap
+
+  } catch {
+    case NonFatal(_) =>
+      throw new IllegalArgumentException(s"Failed parsing oauth header: [$oauthHeaderValue]")
+  }
+  
 }

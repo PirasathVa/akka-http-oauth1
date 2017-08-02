@@ -87,6 +87,7 @@ lazy val akkahttpoauth1 = (project in file("."))
       "oauth.signpost" % "signpost-commonshttp4" % SIGNPOST_VERSION,
 
       "com.typesafe.akka" %% "akka-http" % AKKA_HTTP_VERSION % "provided",
+      "com.typesafe.akka" %% "akka-http-testkit" % AKKA_HTTP_VERSION % "test",
 
       //Test
       "org.scalatest" %% "scalatest" % "3.0.3" % "test",

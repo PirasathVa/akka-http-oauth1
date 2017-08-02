@@ -10,10 +10,10 @@ import scala.concurrent.ExecutionContext
 object OAuth1AuthenticationDirective {
   val authorizationTokenGenerator = new AuthorizationTokenGenerator()
   val oauthSignatureParser = new OauthSignatureParser()
-  
+
   def apply(credentialsSupplier: KnownOAuthCredentialsSupplier)
            (implicit ec: ExecutionContext): Directive1[authentication.OAuthCredentials] = {
-    
+
     val authenticationFactory = new OAuthAuthenticatorFactory(
       credentialsSupplier,
       authorizationTokenGenerator,
@@ -25,18 +25,21 @@ object OAuth1AuthenticationDirective {
       authenticateOrRejectWithChallenge(
         authenticationFactory.authenticatorFunction(
           requestHttpMethodName = httpRequest.method.value,
-          requestUrl = resolveRequestUrl(httpRequest)
+          requestUrl = urlUsedToSign(httpRequest)
         ) _
       )
     }
   }
 
-  private def resolveRequestUrl(httpRequest: HttpRequest): String = {
+  private def urlUsedToSign(httpRequest: HttpRequest): String = {
     val urlUsedToSign: Uri = httpRequest.uri.copy(rawQueryString = None)
-    val protocolUsedToSign =
-      httpRequest.getHeader("x-forwarded-proto").map(_.value)
-        .orElse(httpRequest.protocol.value)
-    urlUsedToSign.copy(scheme = protocolUsedToSign)
-    urlUsedToSign.toString()
+
+    val protocolFromHeader = httpRequest.headers
+      .find(_.name equalsIgnoreCase "x-forwarded-proto")
+      .map(_.value)
+
+    val schemeUsedToSign = protocolFromHeader.getOrElse(httpRequest.uri.scheme)
+
+    urlUsedToSign.copy(scheme = schemeUsedToSign).toString()
   }
 }
