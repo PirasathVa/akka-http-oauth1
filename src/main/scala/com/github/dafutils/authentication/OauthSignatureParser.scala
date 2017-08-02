@@ -7,16 +7,7 @@ class OauthSignatureParser {
 
   def parse(oauthHeaderValue: String): OauthParameters = 
     try {
-      val fieldsAndValues = oauthHeaderValue
-        .stripPrefix("OAuth ")
-        .split(", ")
-        .flatMap(_.split("="))
-  
-      val oauthParametersAsMap = fieldsAndValues
-        .grouped(2)
-        .map { fieldAndValue =>
-          fieldAndValue(0) -> fieldAndValue(1).drop(1).dropRight(1)
-        } toMap
+      val oauthParametersAsMap = parseAsMap(oauthHeaderValue)
   
       OauthParameters(
         signatureMethod = oauthParametersAsMap("oauth_signature_method"),
@@ -34,7 +25,8 @@ class OauthSignatureParser {
   def parseAsMap(oauthHeaderValue: String): Map[String, String] = try {
     val fieldsAndValues = oauthHeaderValue
       .stripPrefix("OAuth ")
-      .split(", ")
+      .split(",")
+      .map(_.trim)
       .flatMap(_.split("="))
 
     fieldsAndValues
