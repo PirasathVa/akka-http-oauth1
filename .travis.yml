@@ -25,7 +25,7 @@ jobs:
     - stage: publish
       env:
         - NAME="Publish build artifacts"
-      script: sbt ++$TRAVIS_SCALA_VERSION bintrayEnsureCredentials publish
+      script: sbt ++$TRAVIS_SCALA_VERSION bintrayEnsureCredentials publish mavenSync
 
 
 notifications:
