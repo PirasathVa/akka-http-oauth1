@@ -13,7 +13,6 @@ val mavenSyncTaskDef = Def.taskDyn {
   if (isSnapshot.value) Def.task {
     log.info(s"Skipping publishing release on Maven Central since [${version.value}] is a snapshot version")
   } else Def.task {
-    log.info(s"Publishing release [${version.value}] to Maven Central")
     bintraySyncMavenCentral.value
     log.info(s"Finished publishing release on Maven Central")
   }
