@@ -83,7 +83,7 @@ class OAuthAuthenticatorFactoryTest extends UnitTestSpec {
     }
   }
 
-  it should "fail to authenticate if the server generated signature does not math the one of the incoming request" in {
+  it should "fail to authenticate if the server generated signature does not match the one of the incoming request" in {
     //Given
     val testRequestHttpMethodName = HttpGet.METHOD_NAME
     val testRequestUrl = "http://example.com"
@@ -144,6 +144,36 @@ class OAuthAuthenticatorFactoryTest extends UnitTestSpec {
       _ shouldEqual Left(HttpChallenge(scheme = "OAuth", realm = None))
     }
   }
+
+  it should "fail to authenticate if the server generated signature does not contain all required OAuth parameters" in {
+    //Given
+    val testRequestHttpMethodName = HttpGet.METHOD_NAME
+    val testRequestUrl = "http://example.com"
+
+    val incomingRequestTimestamp = "12342352341"
+    val incomingRequestNonce = "testNonce"
+    val incomingRequestSignature = "incomingRequestSignature"
+    val testHttpCredentials = GenericHttpCredentials(
+      scheme = "",
+      params = Map(
+        "oauth_timestamp" -> incomingRequestTimestamp,
+        "oauth_nonce" -> incomingRequestNonce,
+        "oauth_signature" -> incomingRequestSignature
+      )
+    )
+
+    //When
+    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(testRequestHttpMethodName, testRequestUrl)(Some(testHttpCredentials))
+
+    //Then
+    whenReady(
+      future = authenticationResult,
+      timeout = Timeout(5 seconds)
+    ) {
+      _ shouldEqual Left(HttpChallenge(scheme = "OAuth", realm = None))
+    }
+  }
+
 
   it should "fail authentication if no credentials are provided" in {
     //Given

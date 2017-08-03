@@ -10,32 +10,44 @@ class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSuppli
                                 authorizationTokenGenerator: AuthorizationTokenGenerator,
                                 oauthSignatureParser: OauthSignatureParser) extends StrictLogging {
 
+  val oauthConsumerKeyParameterName = "oauth_consumer_key"
+
+  val oauthTimestampParameterName = "oauth_timestamp"
+
+  val oauthNonceParameterName = "oauth_nonce"
+
+  val oauthSignatureParameterName = "oauth_signature"
+
+  def containRequiredParameters(callerCredentials: HttpCredentials): Boolean = {
+    callerCredentials.getParams().containsKey(oauthConsumerKeyParameterName) &&
+      callerCredentials.getParams().containsKey(oauthTimestampParameterName) &&
+      callerCredentials.getParams().containsKey(oauthNonceParameterName) &&
+      callerCredentials.getParams().containsKey(oauthSignatureParameterName)
+  }
+
   def authenticatorFunction(requestHttpMethodName: String, requestUrl: String)
                            (credentialsInRequest: Option[HttpCredentials])
                            (implicit ex: ExecutionContext): Future[AuthenticationResult[OAuthCredentials]] =
     Future {
       credentialsInRequest match {
-        case None =>
-          logger.debug("Failed authenticating incoming request: no credentials present.")
-          Left(HttpChallenge(scheme = "OAuth", realm = None))
 
-        case Some(callerCredentials) =>
+        case Some(callerCredentials) if containRequiredParameters(callerCredentials) =>
 
-          val clientKeyInRequest = callerCredentials.params("oauth_consumer_key")
+          val clientKeyInRequest = callerCredentials.params(oauthConsumerKeyParameterName)
           val oauthCredentials = credentialsSupplier.oauthCredentialsFor(clientKeyInRequest)
-          
+
           oauthCredentials map { knownOauthCredentialsForRequest =>
 
             val expectedOAuthTokenParameters = expectedOauthParameters(
               requestHttpMethodName,
               requestUrl,
-              callerCredentials.params("oauth_timestamp"),
-              callerCredentials.params("oauth_nonce"),
+              callerCredentials.params(oauthTimestampParameterName),
+              callerCredentials.params(oauthNonceParameterName),
               knownOauthCredentialsForRequest
             )
             (expectedOAuthTokenParameters, knownOauthCredentialsForRequest)
           } map { case (expectedOAuthTokenParameters, knownCredentials) =>
-            if (expectedOAuthTokenParameters.oauthSignature == callerCredentials.params("oauth_signature")) {
+            if (expectedOAuthTokenParameters.oauthSignature == callerCredentials.params(oauthSignatureParameterName)) {
               logger.debug(s"Successfully authenticated incoming request with clientKey=$clientKeyInRequest.")
               Right(knownCredentials)
             } else {
@@ -45,9 +57,13 @@ class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSuppli
           } getOrElse {
             logger.debug(
               s"Failed authenticating incoming request with clientKey=$clientKeyInRequest: " +
-              s"could not resolve corresponding client secret for this client. The client key is likely not known")
+                s"could not resolve corresponding client secret for this client. The client key is likely not known")
             Left(HttpChallenge(scheme = "OAuth", realm = None))
           }
+
+        case _ =>
+          logger.debug("Failed authenticating incoming request: the oauth credentials are missing or do not contain all required OAuth paramteres.")
+          Left(HttpChallenge(scheme = "OAuth", realm = None))
       }
     }
 
