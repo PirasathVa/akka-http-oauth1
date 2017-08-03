@@ -32,14 +32,12 @@ object OAuth1AuthenticationDirective {
   }
 
   private def urlUsedToSign(httpRequest: HttpRequest): String = {
-    val urlUsedToSign: Uri = httpRequest.uri.copy(rawQueryString = None)
-
     val protocolFromHeader = httpRequest.headers
       .find(_.name equalsIgnoreCase "x-forwarded-proto")
       .map(_.value)
 
     val schemeUsedToSign = protocolFromHeader.getOrElse(httpRequest.uri.scheme)
 
-    urlUsedToSign.copy(scheme = schemeUsedToSign).toString()
+    httpRequest.uri.copy(scheme = schemeUsedToSign).toString()
   }
 }
