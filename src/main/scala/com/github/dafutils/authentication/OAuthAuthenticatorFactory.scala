@@ -8,7 +8,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSupplier,
                                 authorizationTokenGenerator: AuthorizationTokenGenerator,
-                                oauthSignatureParser: OauthSignatureParser) extends StrictLogging {
+                                oauthSignatureParser: OauthSignatureParser, 
+                                requestHttpMethodName: String, 
+                                requestUrl: String)
+                               (implicit ex: ExecutionContext) extends StrictLogging {
 
   val oauthConsumerKeyParameterName = "oauth_consumer_key"
 
@@ -17,17 +20,9 @@ class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSuppli
   val oauthNonceParameterName = "oauth_nonce"
 
   val oauthSignatureParameterName = "oauth_signature"
-
-  def containRequiredParameters(callerCredentials: HttpCredentials): Boolean = {
-    callerCredentials.getParams().containsKey(oauthConsumerKeyParameterName) &&
-      callerCredentials.getParams().containsKey(oauthTimestampParameterName) &&
-      callerCredentials.getParams().containsKey(oauthNonceParameterName) &&
-      callerCredentials.getParams().containsKey(oauthSignatureParameterName)
-  }
-
-  def authenticatorFunction(requestHttpMethodName: String, requestUrl: String)
-                           (credentialsInRequest: Option[HttpCredentials])
-                           (implicit ex: ExecutionContext): Future[AuthenticationResult[OAuthCredentials]] =
+  
+  def authenticatorFunction: Option[HttpCredentials] => Future[AuthenticationResult[OAuthCredentials]] = 
+    (credentialsInRequest: Option[HttpCredentials]) => 
     Future {
       credentialsInRequest match {
 
@@ -66,6 +61,13 @@ class OAuthAuthenticatorFactory(credentialsSupplier: KnownOAuthCredentialsSuppli
           Left(HttpChallenge(scheme = "OAuth", realm = None))
       }
     }
+
+  private def containRequiredParameters(callerCredentials: HttpCredentials): Boolean = {
+    callerCredentials.getParams().containsKey(oauthConsumerKeyParameterName) &&
+      callerCredentials.getParams().containsKey(oauthTimestampParameterName) &&
+      callerCredentials.getParams().containsKey(oauthNonceParameterName) &&
+      callerCredentials.getParams().containsKey(oauthSignatureParameterName)
+  }
 
   private def expectedOauthParameters(requestHttpMethodName: String,
                                       requestUrl: String,

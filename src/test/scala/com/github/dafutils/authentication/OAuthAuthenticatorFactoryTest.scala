@@ -18,9 +18,6 @@ class OAuthAuthenticatorFactoryTest extends UnitTestSpec {
   private val authorizationTokenGeneratorMock = mock[AuthorizationTokenGenerator]
   private val signatureParserMock = mock[OauthSignatureParser]
 
-  val tested = new OAuthAuthenticatorFactory(credentialsSupplierMock, authorizationTokenGeneratorMock, signatureParserMock)
-
-
   it should "authenticate successfully if the server generated signature matches the one of the incoming request" in {
     //Given
     val testRequestHttpMethodName = HttpGet.METHOD_NAME
@@ -71,8 +68,9 @@ class OAuthAuthenticatorFactoryTest extends UnitTestSpec {
       credentialsSupplierMock.oauthCredentialsFor(testRequestClientKey)
     } thenReturn Some(testRequestCredentials)
 
+    val tested = new OAuthAuthenticatorFactory(credentialsSupplierMock, authorizationTokenGeneratorMock, signatureParserMock, testRequestHttpMethodName, testRequestUrl)
     //When
-    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(testRequestHttpMethodName, testRequestUrl)(Some(testHttpCredentials))
+    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(Some(testHttpCredentials))
 
     //Then
     whenReady(
@@ -132,9 +130,10 @@ class OAuthAuthenticatorFactoryTest extends UnitTestSpec {
     when {
       credentialsSupplierMock.oauthCredentialsFor(testRequestClientKey)
     } thenReturn Some(testRequestCredentials)
-
+    val tested = new OAuthAuthenticatorFactory(credentialsSupplierMock, authorizationTokenGeneratorMock, signatureParserMock, testRequestHttpMethodName, testRequestUrl)
+    
     //When
-    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(testRequestHttpMethodName, testRequestUrl)(Some(testHttpCredentials))
+    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(Some(testHttpCredentials))
 
     //Then
     whenReady(
@@ -161,9 +160,10 @@ class OAuthAuthenticatorFactoryTest extends UnitTestSpec {
         "oauth_signature" -> incomingRequestSignature
       )
     )
-
+    val tested = new OAuthAuthenticatorFactory(credentialsSupplierMock, authorizationTokenGeneratorMock, signatureParserMock, testRequestHttpMethodName, testRequestUrl)
+    
     //When
-    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(testRequestHttpMethodName, testRequestUrl)(Some(testHttpCredentials))
+    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(Some(testHttpCredentials))
 
     //Then
     whenReady(
@@ -180,8 +180,10 @@ class OAuthAuthenticatorFactoryTest extends UnitTestSpec {
     val testRequestHttpMethodName = HttpGet.METHOD_NAME
     val testRequestUrl = "http://example.com"
 
+    val tested = new OAuthAuthenticatorFactory(credentialsSupplierMock, authorizationTokenGeneratorMock, signatureParserMock, testRequestHttpMethodName, testRequestUrl)
+    
     //When
-    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(testRequestHttpMethodName, testRequestUrl)(None)
+    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(None)
 
     //Then
     whenReady(

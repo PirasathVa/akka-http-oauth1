@@ -88,9 +88,6 @@ lazy val akkahttpoauth1 = (project in file("."))
     name := "akka-http-oauth1",
 
     libraryDependencies ++= Seq(
-      //Application config
-      "com.typesafe" % "config" % "1.3.1",
-
       //Logging
       "ch.qos.logback" % "logback-classic" % "1.2.3",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
