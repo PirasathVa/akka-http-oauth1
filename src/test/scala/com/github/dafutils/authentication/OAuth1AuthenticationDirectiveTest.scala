@@ -142,12 +142,12 @@ class OAuth1AuthenticationDirectiveTest extends UnitTestSpec with ScalatestRoute
   def signedPostRequestWithBody(testKey: String, testSecret: String): HttpRequest = {
     val consumer = new CommonsHttpOAuthConsumer(testKey, testSecret)
     val urlUsedForSign = "http://example.com"
-    
+
     val postRequest = new HttpPost(urlUsedForSign)
     val entity = new BasicHttpEntity()
     entity.setContent(new ByteArrayInputStream("SomeREquestBody".getBytes(StandardCharsets.UTF_8)))
     postRequest.setEntity(entity)
-    
+
     val signedRequest = consumer.sign(postRequest)
     val authorizationHeaderValue = signedRequest.getHeader("Authorization")
 
@@ -177,6 +177,7 @@ class OAuth1AuthenticationDirectiveTest extends UnitTestSpec with ScalatestRoute
       response.status shouldBe OK
     }
   }
+
   private def signedGetRequest(testKey: String, testSecret: String): HttpRequest = {
     val consumer = new CommonsHttpOAuthConsumer(testKey, testSecret)
     val getRequest = new HttpGet("http://example.com")
