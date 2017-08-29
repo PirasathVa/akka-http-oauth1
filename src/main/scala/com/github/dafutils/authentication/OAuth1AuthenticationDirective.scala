@@ -1,33 +1,26 @@
 package com.github.dafutils.authentication
 
-import akka.http.scaladsl.model.{HttpRequest, Uri}
+import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.server.Directive1
-import akka.http.scaladsl.server.Directives.{authenticateOrRejectWithChallenge, extractRequest}
+import akka.http.scaladsl.server.Directives.{authenticateOrRejectWithChallenge, extractExecutionContext, extractRequest}
 import com.github.dafutils.authentication
-
-import scala.concurrent.ExecutionContext
 
 object OAuth1AuthenticationDirective {
   val authorizationTokenGenerator = new AuthorizationTokenGenerator()
   val oauthSignatureParser = new OauthSignatureParser()
 
-  def apply(credentialsSupplier: KnownOAuthCredentialsSupplier)
-           (implicit ec: ExecutionContext): Directive1[authentication.OAuthCredentials] = {
-
-    val authenticationFactory = new OAuthAuthenticatorFactory(
-      credentialsSupplier,
-      authorizationTokenGenerator,
-      oauthSignatureParser
-    )
-
-    extractRequest flatMap { httpRequest =>
-
-      authenticateOrRejectWithChallenge(
-        authenticationFactory.authenticatorFunction(
-          requestHttpMethodName = httpRequest.method.value,
-          requestUrl = urlUsedToSign(httpRequest)
-        ) _
-      )
+  def apply(credentialsSupplier: KnownOAuthCredentialsSupplier): Directive1[authentication.OAuthCredentials] = {
+    extractExecutionContext flatMap { implicit ec =>
+      extractRequest flatMap { httpRequest =>
+        val authFactory = new OAuthAuthenticatorFactory(
+          credentialsSupplier,
+          authorizationTokenGenerator,
+          oauthSignatureParser,
+          httpRequest.method.value,
+          urlUsedToSign(httpRequest)
+        )
+        authenticateOrRejectWithChallenge(authFactory.authenticatorFunction)
+      }
     }
   }
 
