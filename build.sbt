@@ -1,22 +1,10 @@
 
 val PROJECT_HOMEPAGE_URL = "https://github.com/dafutils/akka-http-oauth1"
-val AKKA_HTTP_VERSION = "10.0.9"
+val AKKA_HTTP_VERSION = "10.0.10"
 val SIGNPOST_VERSION = "1.2.1.2"
 val BINTRAY_USER = System.getenv("BINTRAY_USER")
 val BINTRAY_PASSWORD = System.getenv("BINTRAY_PASS")
 val AKKA_VERSION = "2.5.3"
-
-lazy val mavenSync = TaskKey[Unit]("mavenSync", "Publish a release on Maven Central")
-val mavenSyncTaskDef = Def.taskDyn {
-  val log = streams.value.log
-
-  if (isSnapshot.value) Def.task {
-    log.info(s"Skipping publishing release on Maven Central since [${version.value}] is a snapshot version")
-  } else Def.task {
-    bintraySyncMavenCentral.value
-    log.info(s"Finished publishing release on Maven Central")
-  }
-}
 
 lazy val versionSettings = Seq(
   //  The 'version' setting is not set on purpose: its value is generated automatically by the sbt-dynver plugin
@@ -81,7 +69,7 @@ lazy val akkahttpoauth1 = (project in file("."))
   .settings(versionSettings)
   .settings(publicationSettings)
   .settings(
-    scalaVersion := "2.12.3",
+    scalaVersion := "2.12.4",
 
     organization := "com.github.dafutils",
 
@@ -100,8 +88,7 @@ lazy val akkahttpoauth1 = (project in file("."))
       "com.typesafe.akka" %% "akka-http-testkit" % AKKA_HTTP_VERSION % "test",
 
       //Test
-      "org.scalatest" %% "scalatest" % "3.0.3" % "test",
+      "org.scalatest" %% "scalatest" % "3.0.4" % "test",
       "org.mockito" % "mockito-all" % "1.10.19" % "test"
-    ),
-    mavenSync := mavenSyncTaskDef.value
+    )
   )
