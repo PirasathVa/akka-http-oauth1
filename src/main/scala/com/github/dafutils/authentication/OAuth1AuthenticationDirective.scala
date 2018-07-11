@@ -4,6 +4,7 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.Directives.{authenticateOrRejectWithChallenge, extractExecutionContext, extractRequest}
 import com.github.dafutils.authentication
+import scala.concurrent.duration._
 
 object OAuth1AuthenticationDirective {
   val authorizationTokenGenerator = new AuthorizationTokenGenerator()
@@ -11,12 +12,14 @@ object OAuth1AuthenticationDirective {
 
   def apply(credentialsSupplier: KnownOAuthCredentialsSupplier,
             authorizationTokenGenerator: AuthorizationTokenGenerator = new AuthorizationTokenGenerator(),
-            oauthSignatureParser: OauthSignatureParser = new OauthSignatureParser()): Directive1[authentication.OAuthCredentials] = {
+            oauthSignatureParser: OauthSignatureParser = new OauthSignatureParser(),
+            maxTimestampAge: Duration = 30 seconds): Directive1[authentication.OAuthCredentials] = {
 
     val authenticationFactory = new OAuthAuthenticatorFactory(
       credentialsSupplier,
       authorizationTokenGenerator,
-      oauthSignatureParser
+      oauthSignatureParser,
+      maxTimestampAge
     )
 
     extractExecutionContext flatMap { implicit ec =>
