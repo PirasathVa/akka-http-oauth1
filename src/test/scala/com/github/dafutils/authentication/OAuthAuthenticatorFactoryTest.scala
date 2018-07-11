@@ -1,5 +1,7 @@
 package com.github.dafutils.authentication
 
+import java.time.Instant
+
 import akka.http.scaladsl.model.headers.{GenericHttpCredentials, HttpChallenge}
 import akka.http.scaladsl.server.Directives.AuthenticationResult
 import org.apache.http.client.methods.HttpGet
@@ -18,7 +20,7 @@ class OAuthAuthenticatorFactoryTest extends UnitTestSpec {
   private val authorizationTokenGeneratorMock = mock[AuthorizationTokenGenerator]
   private val signatureParserMock = mock[OauthSignatureParser]
 
-  val tested = new OAuthAuthenticatorFactory(credentialsSupplierMock, authorizationTokenGeneratorMock, signatureParserMock)
+  val tested = new OAuthAuthenticatorFactory(credentialsSupplierMock, authorizationTokenGeneratorMock, signatureParserMock, 30 seconds)
 
 
   it should "authenticate successfully if the server generated signature matches the one of the incoming request" in {
@@ -182,6 +184,39 @@ class OAuthAuthenticatorFactoryTest extends UnitTestSpec {
 
     //When
     val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(testRequestHttpMethodName, testRequestUrl)(None)
+
+    //Then
+    whenReady(
+      future = authenticationResult,
+      timeout = Timeout(5 seconds)
+    ) {
+      _ shouldEqual Left(HttpChallenge(scheme = "OAuth", realm = None))
+    }
+  }
+  
+  it should "fail authentication if the timestamp has expired" in {
+    //Given
+    val maxTimestampAge = 5 seconds
+    val tested = new OAuthAuthenticatorFactory(credentialsSupplierMock, authorizationTokenGeneratorMock, signatureParserMock, maxTimestampAge)
+    val testRequestHttpMethodName = HttpGet.METHOD_NAME
+    val testRequestUrl = "http://example.com"
+
+    val incomingRequestTimestamp = (Instant.now().getEpochSecond - maxTimestampAge.toSeconds - 1).toString
+    val incomingRequestNonce = "testNonce"
+    val testRequestClientKey = "testRequestClientKey"
+    val incomingRequestSignature = "incomingRequestSignature"
+    val testHttpCredentials = GenericHttpCredentials(
+      scheme = "",
+      params = Map(
+        "oauth_consumer_key" -> testRequestClientKey,
+        "oauth_nonce" -> incomingRequestNonce,
+        "oauth_signature" -> incomingRequestSignature,
+        "oauth_timestamp" -> incomingRequestTimestamp
+      )
+    )
+
+    //When
+    val authenticationResult: Future[AuthenticationResult[OAuthCredentials]] = tested.authenticatorFunction(testRequestHttpMethodName, testRequestUrl)(Some(testHttpCredentials))
 
     //Then
     whenReady(
