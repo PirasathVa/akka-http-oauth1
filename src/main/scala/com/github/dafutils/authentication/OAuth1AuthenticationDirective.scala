@@ -16,7 +16,7 @@ class UrlResolver extends StrictLogging {
 
     val schemeUsedToSign = protocolFromHeader.getOrElse(httpRequest.uri.scheme)
     val urlUsedToSign = httpRequest.uri.copy(scheme = schemeUsedToSign).toString()
-    logger.info(s"Url used to sign incoming request: $urlUsedToSign")
+    logger.debug(s"Url used to sign incoming request: $urlUsedToSign")
     urlUsedToSign
   }
 }
