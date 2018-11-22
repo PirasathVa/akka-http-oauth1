@@ -19,27 +19,34 @@ lazy val versionSettings = Seq(
 )
 
 lazy val publicationSettings = Seq(
-  publishTo := {
+  publishTo := Def.taskDyn{
     if (isSnapshot.value)
-      Some(s"Artifactory Realm" at "https://oss.jfrog.org/artifactory/oss-snapshot-local;build.timestamp=" + new java.util.Date().getTime)
-    else
-      publishTo.value //Here we are assuming that the bintray-sbt plugin does its magic and the publish settings are set to
-    //point to Bintray
-  },
-  credentials := {
-    if (isSnapshot.value) {
-      Seq(
-        Credentials(
-          realm = "Artifactory Realm",
-          host = "oss.jfrog.org",
-          userName = BINTRAY_USER,
-          passwd = BINTRAY_PASSWORD
-        )
-      )
-    }
-    else
-      credentials.value //Similar
-  },
+      Def.task[Option[Resolver]] {
+        Some(s"Artifactory Realm" at "https://oss.jfrog.org/artifactory/oss-snapshot-local;build.timestamp=" + new java.util.Date().getTime)
+      }
+    else 
+      Def.task {
+        //Here we are assuming that the bintray-sbt plugin does its magic and the publish settings are set to
+        //point to Bintray
+        publishTo.value
+      }
+  }.value,
+  credentials := Def.taskDyn{
+      if (isSnapshot.value) {
+        Def.task {
+          Seq(
+            Credentials(
+              realm = "Artifactory Realm",
+              host = "oss.jfrog.org",
+              userName = BINTRAY_USER,
+              passwd = BINTRAY_PASSWORD
+            )
+          )
+        }
+      }
+      else
+        Def.task { credentials.value }
+  }.value,
   publishArtifact in Test := false,
   bintrayReleaseOnPublish := !isSnapshot.value
 )
@@ -69,7 +76,7 @@ lazy val akkahttpoauth1 = (project in file("."))
   .settings(versionSettings)
   .settings(publicationSettings)
   .settings(
-    scalaVersion := "2.12.4",
+    scalaVersion := "2.12.7",
 
     organization := "com.github.dafutils",
 
