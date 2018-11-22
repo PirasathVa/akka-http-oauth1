@@ -1,3 +1,4 @@
+import sbt.Keys.publishTo
 
 val PROJECT_HOMEPAGE_URL = "https://github.com/dafutils/akka-http-oauth1"
 val AKKA_HTTP_VERSION = "10.0.10"
@@ -19,18 +20,13 @@ lazy val versionSettings = Seq(
 )
 
 lazy val publicationSettings = Seq(
-  publishTo := Def.taskDyn{
+  publishTo := {
+    val currentPublishTo =  publishTo.value
     if (isSnapshot.value)
-      Def.task[Option[Resolver]] {
         Some(s"Artifactory Realm" at "https://oss.jfrog.org/artifactory/oss-snapshot-local;build.timestamp=" + new java.util.Date().getTime)
-      }
-    else 
-      Def.task {
-        //Here we are assuming that the bintray-sbt plugin does its magic and the publish settings are set to
-        //point to Bintray
-        publishTo.value
-      }
-  }.value,
+    else
+        currentPublishTo
+  },
   credentials := Def.taskDyn{
       if (isSnapshot.value) {
         Def.task {
