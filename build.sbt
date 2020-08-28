@@ -1,7 +1,7 @@
 import sbt.Keys.publishTo
 
 val PROJECT_HOMEPAGE_URL = "https://github.com/dafutils/akka-http-oauth1"
-val AKKA_HTTP_VERSION = "10.0.10"
+val AKKA_HTTP_VERSION = "10.1.11"
 val SIGNPOST_VERSION = "1.2.1.2"
 val BINTRAY_USER = System.getenv("BINTRAY_USER")
 val BINTRAY_PASSWORD = System.getenv("BINTRAY_PASS")
@@ -72,18 +72,20 @@ lazy val akkahttpoauth1 = (project in file("."))
   .settings(versionSettings)
   .settings(publicationSettings)
   .settings(
-    scalaVersion := "2.12.7",
+    scalaVersion := "2.13.1",
 
-    organization := "com.github.dafutils",
+    organization := "com.github.pirasath",
 
     name := "akka-http-oauth1",
 
     libraryDependencies ++= Seq(
       //Logging
       "ch.qos.logback" % "logback-classic" % "1.2.3",
-      "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
+//      "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
 
-      //Authentication
+
+//Authentication
       "oauth.signpost" % "signpost-core" % SIGNPOST_VERSION,
       "oauth.signpost" % "signpost-commonshttp4" % SIGNPOST_VERSION,
 
@@ -91,7 +93,7 @@ lazy val akkahttpoauth1 = (project in file("."))
       "com.typesafe.akka" %% "akka-http-testkit" % AKKA_HTTP_VERSION % "test",
 
       //Test
-      "org.scalatest" %% "scalatest" % "3.0.4" % "test",
+      "org.scalatest" %% "scalatest" % "3.0.8" % "test",
       "org.mockito" % "mockito-all" % "1.10.19" % "test"
     )
   )
